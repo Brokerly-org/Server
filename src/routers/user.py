@@ -61,13 +61,11 @@ async def delete_bot(botname: str, user=Depends(get_user)):
 @user_router.get("/bot_list")
 async def bot_list(user=Depends(get_user)):
     db: DB = DB.get_instance()
-    bots = []
-    for bot_token in user.bot_tokens:
-        bot = await db.get_bot_by_token(bot_token)
-        if not bot:
-            continue
-        bots.append(bot.dict(exclude={"owner_token", "chats"}))
-    return {"bots": bots}
+    bots_list = []
+    bots_objects = await db.get_bot_list(user_token=user.token)
+    for bot in bots_objects:
+        bots_list.append(bot.dict(exclude={"owner_token", "chats"}))
+    return {"bots": bots_list}
 
 
 @user_router.post("/push")

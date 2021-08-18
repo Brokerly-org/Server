@@ -52,6 +52,12 @@ class DB:
             async with db.execute(sql, [token]) as cursor:
                 return await cursor.fetchone()
 
+    async def _get_bot_list(self, user_token: str):
+        async with aiosqlite.connect(self.db_file) as db:
+            sql = "SELECT * FROM bots WHERE owner_token=?"
+            async with db.execute(sql, [user_token]) as cursor:
+                return await cursor.fetchall()
+
     async def _create_user(self, user: User):
         async with aiosqlite.connect(self.db_file) as db:
             sql = "INSERT INTO users VALUES (?, ?, ?, ?)"
@@ -189,6 +195,21 @@ class DB:
         # TODO: load user bot tokens
         self.users[user.token] = user
         return user
+
+    async def get_bot_list(self, user_token: str):
+        bot_list_data = await self._get_bot_list(user_token)
+        bots = []
+        for bot_data in bot_list_data:
+            bot = Bot(
+                token=bot_data[0],
+                botname=bot_data[1],
+                title=bot_data[2],
+                description=bot_data[3],
+                owner_token=bot_data[4],
+                last_online=bot_data[5],
+            )
+            bots.append(bot)
+        return bots
 
     async def delete_bot(self, botname: str):
         bot = await self.get_bot_by_bot_name(botname)
