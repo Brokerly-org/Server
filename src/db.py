@@ -172,8 +172,15 @@ class DB:
         if bot:
             return bot
         bot_data = await self._get_bot_by_bot_name(botname)
-        # TODO: create Bot from Row
-        return bot_data
+        bot = Bot(
+            token=bot_data[0],
+            botname=bot_data[1],
+            title=bot_data[2],
+            description=bot_data[3],
+            owner_token=bot_data[4],
+            last_online=bot_data[5],
+        )
+        return bot
 
     async def get_bot_by_token(self, bot_token: str) -> Bot:
         bot = self.bots_by_token.get(bot_token, None)
