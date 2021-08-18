@@ -11,9 +11,9 @@ from .connections_manager import ConnectionManager
 bot_websocket_route = APIRouter()
 
 
-def get_bot(token: str) -> Bot:
+async def get_bot(token: str) -> Bot:
     db: DB = DB.get_instance()
-    bot = db.get_bot_by_token(token)
+    bot = await db.get_bot_by_token(token)
     if bot is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
     return bot

@@ -36,7 +36,7 @@ class DataApi:
     async def user_push(self, user: User, botname: str, message: str):
         user.push_to_bot(botname, message)
         chat = user.chats[botname]
-        bot = self.db.get_bot_by_bot_name(chat.botname)
+        bot = await self.db.get_bot_by_bot_name(chat.botname)
         bot_token = bot.token
         await self._notify_listeners(bot_token)
 

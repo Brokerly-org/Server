@@ -9,8 +9,6 @@ class Chat(BaseModel):
     bot_unread_messages: list = Field(default_factory=list)
     user_messages: list = Field(default_factory=list)
     user_unread_messages: list = Field(default_factory=list)
-    bot_last_pull_index: int = 0
-    user_last_pull_index: int = 0
     active: bool = True
 
     def bot_push(self, message: str):

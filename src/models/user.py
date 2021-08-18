@@ -9,7 +9,7 @@ class User(BaseModel):
     token: str
     name: str
     email: str
-    password: str
+    password_hash: str
     chats: Dict[str, Chat] = Field(default_factory=dict)
     bot_tokens: list = Field(default_factory=list)
 

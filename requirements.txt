@@ -4,3 +4,4 @@ fastapi
 pydantic[email]
 aiofiles
 Jinja2
+aiosqlite

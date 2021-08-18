@@ -11,9 +11,9 @@ from .connections_manager import ConnectionManager
 user_websocket_route = APIRouter()
 
 
-def get_user(token: str) -> User:
+async def get_user(token: str) -> User:
     db: DB = DB.get_instance()
-    user = db.get_user(token)
+    user = await db.get_user(token)
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
     return user

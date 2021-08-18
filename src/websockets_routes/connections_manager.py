@@ -26,11 +26,11 @@ class ConnectionManager:
         ws: WebSocket = self.connections.get(token)
         if ws is None:
             return
-        user = self.db.get_user(token)
+        user = await self.db.get_user(token)
         if user is not None:
             await ws.send_json(user.pull_from_chats())
         else:
-            bot = self.db.get_bot_by_token(token)
+            bot = await self.db.get_bot_by_token(token)
             await ws.send_json(bot.pull_from_chats())
 
     async def _register_listener(self, token: str, session_id: UUID):

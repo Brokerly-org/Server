@@ -34,9 +34,6 @@ app.include_router(bot_websocket_route)
 app.include_router(user_websocket_route)
 
 
-
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
 # svelte spa
 @app.get("/")
 async def serve_spa(request: Request):
@@ -53,12 +50,19 @@ for route in ('login', 'register', 'dashboard'):
 #     return templates.TemplateResponse("index.html", {"request": request})
 
 
-
-
 @app.on_event("startup")
 async def startup():
+    import aiosqlite
     # Initialize
-    DB()
+    db = DB()
+    # for testing..
+    try:
+        await db.create_tables()
+    except aiosqlite.OperationalError:
+        pass
+    else:
+        await db.create_admin_user()
+
     data_api = DataApi()
     ConnectionManager(data_api)
 
