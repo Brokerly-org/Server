@@ -183,6 +183,8 @@ class DB:
         if user:
             return user
         user_data = await self._get_user(user_token)
+        if not user_data:
+            return
         user = User(token=user_data[0], name=user_data[1], email=user_data[2], password_hash=user_data[3])
         # TODO: load user bot tokens
         self.users[user.token] = user
