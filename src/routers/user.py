@@ -81,7 +81,7 @@ async def push_message_to_bot(message: str, botname: str, user=Depends(get_user)
         await data_api.user_push(user, botname, message)
         # user.push_to_bot(botname=botname, message=message)
     except KeyError:
-        await db.new_chat(user.token, botname)
+        await db.create_chat(user.token, botname)
         await data_api.user_push(user, botname, message)
         # user.push_to_bot(botname=botname, message=message)
 
@@ -89,11 +89,8 @@ async def push_message_to_bot(message: str, botname: str, user=Depends(get_user)
 @user_router.get("/bots_status")
 async def bots_status(user=Depends(get_user)):
     db: DB = DB.get_instance()
-    bots_info = {}
-    for chat in user.chats.values():
-        bot = await db.get_bot_by_bot_name(chat.botname)
-        bots_info[bot.botname] = bot.last_online
-    return bots_info
+    bots = await db.get_bots_last_online(user.token)
+    return bots
 
 
 @user_router.get("/bot_info")
@@ -106,5 +103,7 @@ async def bot_info(botname: str):
 
 
 @user_router.get("/pull")
-def pull_messages(user=Depends(get_user)):
-    return {"messages": user.pull_from_chats()}
+async def pull_messages(user=Depends(get_user)):
+    db: DB = DB.get_instance()
+    messages = await db.get_user_unread_messages(user.token)
+    return {"messages": messages}

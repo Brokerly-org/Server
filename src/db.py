@@ -1,9 +1,10 @@
 from secrets import token_urlsafe
 from hashlib import sha256
+from collections import defaultdict
 
 import aiosqlite
 
-from models import Bot, User, Chat
+from models import Bot, User, Chat, Message
 
 
 class DB:
@@ -16,23 +17,21 @@ class DB:
         return cls._instance
 
     def __init__(self):
-        self.db_file = "data.db"
-        self.bots_by_botname = {}
-        self.bots_by_token = {}
-        self.users = {}
-        self.chats = {}
+        self.db_file = "data/data.db"
 
         self.__class__._instance = self
 
     async def create_tables(self):
         async with aiosqlite.connect(self.db_file) as db:
-            async with aiosqlite.connect(self.db_file) as db:
-                sql = "CREATE TABLE users (token TEXT, name TEXT, email TEXT, password_hash TEXT)"
-                await db.execute(sql)
-                sql = "CREATE TABLE bots (token TEXT, botname TEXT, title TEXT, description TEXT, owner_token TEXT, last_online REAL)"
-                await db.execute(sql)
-                sql = "CREATE TABLE chats (id TEXT, botname TEXT, user_token TEXT, password_hash TEXT)"
-                await db.execute(sql)
+            sql = "CREATE TABLE users (token TEXT, name TEXT, email TEXT, password_hash TEXT)"
+            await db.execute(sql)
+            sql = "CREATE TABLE bots (token TEXT, botname TEXT, title TEXT, description TEXT, owner_token TEXT, last_online REAL)"
+            await db.execute(sql)
+            sql = "CREATE TABLE chats (id TEXT, botname TEXT, user_token TEXT, active BOOL, size INT)"
+            await db.execute(sql)
+            sql = "CREATE TABLE messages (chat_id TEXT, message_index INT, sender TEXT, content TEXT, read_status BOOL, created_at REAL)"
+            await db.execute(sql)
+            await db.commit()
 
     async def _get_bot_by_bot_name(self, botname: str):
         async with aiosqlite.connect(self.db_file) as db:
@@ -51,6 +50,65 @@ class DB:
             sql = "SELECT * FROM users WHERE token=?"
             async with db.execute(sql, [token]) as cursor:
                 return await cursor.fetchone()
+
+    async def _get_chat(self, user_token: str, botname: str):
+        async with aiosqlite.connect(self.db_file) as db:
+            sql = "SELECT * FROM chats WHERE user_token = ? AND botname = ?"
+            async with db.execute(sql, [user_token, botname]) as cursor:
+                return await cursor.fetchone()
+
+    async def _get_bots_status(self, user_token: str):
+        async with aiosqlite.connect(self.db_file) as db:
+            sql = """
+            SELECT bots.last_online, bots.botname
+            FROM bots
+            INNER JOIN chats ON 
+            bots.botname = chats.botname 
+            INNER JOIN users ON
+            users.token = chats.user_token AND users.token = ?
+            """
+            async with db.execute(sql, [user_token]) as cursor:
+                return await cursor.fetchall()
+
+    async def _get_chat_by_id(self, chat_id: str):
+        async with aiosqlite.connect(self.db_file) as db:
+            sql = "SELECT * FROM chats WHERE id = ?"
+            async with db.execute(sql, [chat_id]) as cursor:
+                return await cursor.fetchone()
+
+    async def _get_bot_unread_messages(self, botname: str):
+        async with aiosqlite.connect(self.db_file) as db:
+            sql = """
+            SELECT messages.content, messages.message_index, messages.sender, messages.created_at, chats.id
+            FROM messages
+            INNER JOIN chats ON 
+            messages.chat_id = chats.id AND messages.read_status = FALSE AND messages.sender = 'user'
+            INNER JOIN bots ON 
+            bots.botname = chats.botname AND bots.botname = ?
+            """
+            async with db.execute(sql, [botname]) as cursor:
+                messages = await cursor.fetchall()
+                return messages
+
+    async def _get_user_unread_messages(self, user_token: str):
+        async with aiosqlite.connect(self.db_file) as db:
+            sql = """
+            SELECT messages.content, messages.message_index, messages.sender, messages.created_at, chats.id, chats.botname
+            FROM messages
+            INNER JOIN chats ON 
+            messages.chat_id = chats.id AND messages.read_status = FALSE AND messages.sender = 'bot'
+            INNER JOIN users ON 
+            users.token = chats.user_token AND users.token = ?
+            """
+            async with db.execute(sql, [user_token]) as cursor:
+                messages = await cursor.fetchall()
+                return messages
+
+    async def _mark_message_as_read(self, message_index: int, chat_id: str):
+        async with aiosqlite.connect(self.db_file) as db:
+            sql = "UPDATE messages SET read_status = TRUE WHERE message_index = ? AND chat_id = ?"
+            await db.execute(sql, [message_index, chat_id])
+            await db.commit()
 
     async def _get_bot_list(self, user_token: str):
         async with aiosqlite.connect(self.db_file) as db:
@@ -90,7 +148,7 @@ class DB:
 
     async def _create_chat(self, chat: Chat):
         async with aiosqlite.connect(self.db_file) as db:
-            sql = "INSERT INTO chats VALUES (?, ?, ?, ?)"
+            sql = "INSERT INTO chats VALUES (?, ?, ?, ?, ?)"
             await db.execute_insert(
                 sql,
                 [
@@ -98,6 +156,23 @@ class DB:
                     chat.botname,
                     chat.user_token,
                     chat.active,
+                    chat.size
+                ]
+            )
+            await db.commit()
+
+    async def _create_message(self, message: Message):
+        async with aiosqlite.connect(self.db_file) as db:
+            sql = "INSERT INTO messages VALUES (?, ?, ?, ?, ?, ?)"
+            await db.execute_insert(
+                sql,
+                [
+                    message.chat_id,
+                    message.index,
+                    message.sender,
+                    message.content,
+                    message.read_status,
+                    message.created_at
                 ]
             )
             await db.commit()
@@ -128,49 +203,48 @@ class DB:
             await db.execute(sql, [unix_time, botname])
             await db.commit()
 
-    async def create_admin_user(self):
-        password = "admin"
-        password_hash = sha256(password.encode()).hexdigest()
-        new_user = User(token="admin", name="admin", email="admin@admin.com", password_hash=password_hash)
-        self.users["admin"] = new_user
-        await self._create_user(new_user)
-
-    async def create_bot(self, user_token: str, botname: str, title: str, description: str) -> str:
-        token = token_urlsafe(15)
-        new_bot = Bot(token=token, botname=botname, title=title, description=description, owner_token=user_token)
-        self.bots_by_botname[botname] = new_bot
-        self.bots_by_token[token] = new_bot
-        await self._create_bot(new_bot)
-        self.users[user_token].add_bot(new_bot.token)
-        return token
+    async def _update_chat_size(self, chat_id: str):
+        async with aiosqlite.connect(self.db_file) as db:
+            sql = "UPDATE chats SET size = size + 1 WHERE id = ?"
+            await db.execute(sql, [chat_id])
+            await db.commit()
 
     async def find_user_by_email_and_password(self, email: str, password_hash: str) -> User:
-        for user in self.users.values():
-            if user.email == email and user.password_hash == password_hash:
-                return user
         user_data = await self._find_user_by_email_and_password(email, password_hash)
         user = User(token=user_data[0], name=user_data[1], email=user_data[2], password_hash=user_data[3])
         # TODO: load user bot tokens
         return user
 
+    async def create_admin_user(self):
+        password = "admin"
+        password_hash = sha256(password.encode()).hexdigest()
+        new_user = User(token="admin", name="admin", email="admin@admin.com", password_hash=password_hash)
+        await self._create_user(new_user)
+
+    async def create_bot(self, user_token: str, botname: str, title: str, description: str) -> str:
+        token = token_urlsafe(15)
+        new_bot = Bot(token=token, botname=botname, title=title, description=description, owner_token=user_token)
+        await self._create_bot(new_bot)
+        return token
+
     async def create_user(self, name: str, email: str, password_hash: str) -> str:
         token = token_urlsafe(15)
         new_user = User(token=token, name=name, email=email, password_hash=password_hash)
-        self.users[token] = new_user
         await self._create_user(new_user)
         return token
 
-    async def new_chat(self, user_token: str, botname: str):
+    async def create_message(self, chat_id: str, index: int, sender: str, content: str):
+        new_message = Message(chat_id=chat_id, index=index, content=content, sender=sender, read_status=False)
+        await self._create_message(new_message)
+        await self._update_chat_size(chat_id)
+
+    async def create_chat(self, user_token: str, botname: str) -> str:
         chat_id = token_urlsafe(15)
         new_chat = Chat(id=chat_id, botname=botname, user_token=user_token)
-        self.bots_by_botname[botname].add_chat(new_chat)
-        self.users[user_token].add_chat(new_chat)
         await self._create_chat(new_chat)
+        return chat_id
 
     async def get_bot_by_bot_name(self, botname: str) -> Bot:
-        bot = self.bots_by_botname.get(botname, None)
-        if bot:
-            return bot
         bot_data = await self._get_bot_by_bot_name(botname)
         bot = Bot(
             token=bot_data[0],
@@ -180,14 +254,12 @@ class DB:
             owner_token=bot_data[4],
             last_online=bot_data[5],
         )
-        self.bots_by_botname[botname] = bot
         return bot
 
     async def get_bot_by_token(self, bot_token: str) -> Bot:
-        bot = self.bots_by_token.get(bot_token, None)
-        if bot:
-            return bot
         bot_data = await self._get_bot_by_token(bot_token)
+        if not bot_data:
+            return
         bot = Bot(
             token=bot_data[0],
             botname=bot_data[1],
@@ -196,19 +268,14 @@ class DB:
             owner_token=bot_data[4],
             last_online=bot_data[5],
         )
-        self.bots_by_token[bot_token] = bot
         return bot
 
     async def get_user(self, user_token: str) -> User:
-        user = self.users.get(user_token, None)
-        if user:
-            return user
         user_data = await self._get_user(user_token)
         if not user_data:
             return
         user = User(token=user_data[0], name=user_data[1], email=user_data[2], password_hash=user_data[3])
         # TODO: load user bot tokens
-        self.users[user.token] = user
         return user
 
     async def get_bot_list(self, user_token: str):
@@ -226,14 +293,80 @@ class DB:
             bots.append(bot)
         return bots
 
+    async def get_bot_unread_messages(self, botname: str):
+        messages_data = await self._get_bot_unread_messages(botname)
+        chats = defaultdict(list)
+        for message in messages_data:
+            message = Message(
+                content=message[0],
+                index=message[1],
+                sender=message[2],
+                created_at=message[3],
+                chat_id=message[4],
+                read_status=False,
+            )
+            chats[message.chat_id].append(message.dict())
+            await self._mark_message_as_read(message.index, message.chat_id)
+        messages = [{"chat": chat_id, "messages": messages} for chat_id, messages in chats.items()]
+        return messages
+
+    async def get_bots_last_online(self, user_token: str):
+        bots_status = await self._get_bots_status(user_token)
+        bots = []
+        for bot in bots_status:
+            bots.append({"botname": bot[1], "last_online": bot[0]})
+        return bots
+
+    async def get_user_unread_messages(self, user_token: str):
+        messages_data = await self._get_user_unread_messages(user_token)
+        chats = defaultdict(list)
+        for message in messages_data:
+            botname = message[5]
+            message = Message(
+                content=message[0],
+                index=message[1],
+                sender=message[2],
+                created_at=message[3],
+                chat_id=message[4],
+                read_status=False,
+            )
+            chats[botname].append(message.dict())
+            await self._mark_message_as_read(message.index, message.chat_id)
+        messages = [{"chat": botname, "messages": messages} for botname, messages in chats.items()]
+        return messages
+
+    async def get_chat_by_user_token_and_botname(self, user_token: str, botname:str) -> Chat:
+        chat_data = await self._get_chat(user_token, botname)
+        if not chat_data:
+            return
+        chat = Chat(
+            id=chat_data[0],
+            botname=chat_data[1],
+            user_token=chat_data[2],
+            active=chat_data[3],
+            size=chat_data[4]
+        )
+        return chat
+
+    async def get_chat_by_chat_id(self, chat_id: str) -> Chat:
+        chat_data = await self._get_chat_by_id(chat_id)
+        if not chat_data:
+            return
+        chat = Chat(
+            id=chat_data[0],
+            botname=chat_data[1],
+            user_token=chat_data[2],
+            active=chat_data[3],
+            size=chat_data[4]
+        )
+        return chat
+
     async def update_bot_last_online(self, botname: str, unix_time: float):
         await self._update_bot_last_online(botname, unix_time)
 
     async def delete_bot(self, botname: str):
         bot = await self.get_bot_by_bot_name(botname)
         bot.delete()
-        del self.bots_by_botname[botname]
-        del self.bots_by_token[bot.token]
         await self._delete_bot(bot.token)
         return True
 

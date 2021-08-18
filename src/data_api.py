@@ -28,14 +28,16 @@ class DataApi:
             await callback()
 
     async def bot_push(self, bot: Bot, chat_id: str, message: str):
-        bot.push_to_chat(chat_id, message)
-        chat = bot.chats[chat_id]
+        chat = await self.db.get_chat_by_chat_id(chat_id)
+        await self.db.create_message(chat.id, chat.size, "bot", message)
         user_token = chat.user_token
         await self._notify_listeners(user_token)
 
     async def user_push(self, user: User, botname: str, message: str):
-        user.push_to_bot(botname, message)
-        chat = user.chats[botname]
+        chat = await self.db.get_chat_by_user_token_and_botname(user.token, botname)
+        if chat is None:
+            raise KeyError  # TODO: replace with costume exception
+        await self.db.create_message(chat.id, chat.size, "user", message)
         bot = await self.db.get_bot_by_bot_name(chat.botname)
         bot_token = bot.token
         await self._notify_listeners(bot_token)

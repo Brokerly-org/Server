@@ -19,7 +19,8 @@ async def get_bot(token: str) -> Bot:
 @bot_router.get("/pull")
 async def pull_messages_as_bot(bot: Bot = Depends(get_bot)):
     db: DB = DB.get_instance()
-    messages = bot.pull_from_chats()
+    # messages = bot.pull_from_chats()
+    messages = await db.get_bot_unread_messages(botname=bot.botname)
     new_time = time()
     bot.last_online = new_time
     await db.update_bot_last_online(bot.botname, new_time)
