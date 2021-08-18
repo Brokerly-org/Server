@@ -1,0 +1,6 @@
+uvicorn
+uvicorn[standard]
+fastapi
+pydantic[email]
+aiofiles
+Jinja2
