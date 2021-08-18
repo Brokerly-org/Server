@@ -82,7 +82,7 @@ class DB:
             SELECT messages.content, messages.message_index, messages.sender, messages.created_at, chats.id
             FROM messages
             INNER JOIN chats ON 
-            messages.chat_id = chats.id AND messages.read_status = FALSE AND messages.sender = 'user'
+            messages.chat_id = chats.id AND messages.read_status = 0 AND messages.sender = 'user'
             INNER JOIN bots ON 
             bots.botname = chats.botname AND bots.botname = ?
             """
@@ -96,7 +96,7 @@ class DB:
             SELECT messages.content, messages.message_index, messages.sender, messages.created_at, chats.id, chats.botname
             FROM messages
             INNER JOIN chats ON 
-            messages.chat_id = chats.id AND messages.read_status = FALSE AND messages.sender = 'bot'
+            messages.chat_id = chats.id AND messages.read_status = 0 AND messages.sender = 'bot'
             INNER JOIN users ON 
             users.token = chats.user_token AND users.token = ?
             """
