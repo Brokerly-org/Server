@@ -106,7 +106,7 @@ class DB:
 
     async def _mark_message_as_read(self, message_index: int, chat_id: str):
         async with aiosqlite.connect(self.db_file) as db:
-            sql = "UPDATE messages SET read_status = TRUE WHERE message_index = ? AND chat_id = ?"
+            sql = "UPDATE messages SET read_status = 1 WHERE message_index = ? AND chat_id = ?"
             await db.execute(sql, [message_index, chat_id])
             await db.commit()
 
