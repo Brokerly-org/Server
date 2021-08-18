@@ -122,6 +122,12 @@ class DB:
                 user = await cursor.fetchone()
                 return user
 
+    async def _update_bot_last_online(self, botname: str, unix_time: float):
+        async with aiosqlite.connect(self.db_file) as db:
+            sql = "UPDATE bots SET last_online=? WHERE botname=?"
+            await db.execute(sql, [unix_time, botname])
+            await db.commit()
+
     async def create_admin_user(self):
         password = "admin"
         password_hash = sha256(password.encode()).hexdigest()
@@ -210,6 +216,9 @@ class DB:
             )
             bots.append(bot)
         return bots
+
+    async def update_bot_last_online(self, botname: str, unix_time: float):
+        await self._update_bot_last_online(botname, unix_time)
 
     async def delete_bot(self, botname: str):
         bot = await self.get_bot_by_bot_name(botname)
