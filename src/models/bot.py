@@ -29,4 +29,3 @@ class Bot(BaseModel):
     def delete(self):
         for chat in self.chats.values():
             chat.close()
-        # TODO: delete bot

@@ -60,5 +60,12 @@ class DB:
     def get_bot_by_token(self, bot_token: str) -> Bot:
         return self.bots_by_token.get(bot_token, None)
 
+    def delete_bot(self, botname: str):
+        bot = self.get_bot_by_bot_name(botname)
+        bot.delete()
+        del self.bots_by_botname[botname]
+        del self.bots_by_token[bot.token]
+        return True
+
     def close(self):
         pass

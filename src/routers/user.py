@@ -41,8 +41,17 @@ def create_bot(botname: str, title: str, description: str, user=Depends(get_user
 
 @user_router.delete("/delete_bot")
 def delete_bot(botname: str, user=Depends(get_user)):
-    # TODO: delete bot
-    pass
+    db: DB = DB.get_instance()
+    bot = db.get_bot_by_bot_name(botname)
+    if bot is None or bot.owner_token != user.token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="You do not have permissions to delete this bot"
+        )
+    deleted = db.delete_bot(botname)
+    if not deleted:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bot not found")
+    return {"deleted": deleted}
 
 
 @user_router.get("/bot_list")
