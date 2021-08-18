@@ -1,0 +1,2 @@
+# Server
+Bots hosting server
