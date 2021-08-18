@@ -180,6 +180,7 @@ class DB:
             owner_token=bot_data[4],
             last_online=bot_data[5],
         )
+        self.bots_by_botname[botname] = bot
         return bot
 
     async def get_bot_by_token(self, bot_token: str) -> Bot:
@@ -195,6 +196,7 @@ class DB:
             owner_token=bot_data[4],
             last_online=bot_data[5],
         )
+        self.bots_by_token[bot_token] = bot
         return bot
 
     async def get_user(self, user_token: str) -> User:

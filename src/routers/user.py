@@ -73,7 +73,9 @@ async def push_message_to_bot(message: str, botname: str, user=Depends(get_user)
     db: DB = DB.get_instance()
     data_api: DataApi = DataApi.get_instance()
 
-    if db.bots_by_botname.get(botname, None) is None:
+    bot = db.get_bot_by_bot_name(botname)
+
+    if bot is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="botname not found")
     try:
         await data_api.user_push(user, botname, message)
