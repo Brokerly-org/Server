@@ -5,3 +5,4 @@ pydantic[email]
 aiofiles
 Jinja2
 aiosqlite
+python-dotenv
