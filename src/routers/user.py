@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 # from pydantic import EmailStr
 
 from models import User
-from data_api import DataApi
+from message_api import MessageApi
 from data_layer.user import (
     get_user as get_user_by_token,
     create_user,
@@ -43,7 +43,7 @@ async def login(email: str, password: str):  # TODO change to mail
 
 @user_router.post("/push")
 async def push_message_to_bot(message: str, botname: str, user=Depends(get_user)):
-    data_api: DataApi = DataApi.get_instance()
+    data_api: MessageApi = MessageApi.get_instance()
     bot = await get_bot_by_bot_name(botname)
     if bot is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="botname not found")

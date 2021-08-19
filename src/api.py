@@ -8,7 +8,7 @@ from routers.bot import bot_router
 from routers.user import user_router
 from routers.admin import admin_router
 from db import DB
-from data_api import DataApi
+from message_api import MessageApi
 from websockets_routes import ConnectionManager, user_websocket_route, bot_websocket_route
 
 
@@ -65,7 +65,7 @@ async def startup():
         # for testing
         await db.create_admin_user()
 
-    data_api = DataApi()
+    data_api = MessageApi()
     ConnectionManager(data_api)
 
 

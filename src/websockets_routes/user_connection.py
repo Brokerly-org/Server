@@ -2,9 +2,9 @@ from uuid import uuid4
 
 from fastapi import APIRouter, HTTPException, status, Depends, WebSocket, WebSocketDisconnect
 
-from db import DB
 from models import User
-from data_api import DataApi
+from message_api import MessageApi
+from data_layer.user import get_user as get_user_by_token
 from .connections_manager import ConnectionManager
 
 
@@ -12,8 +12,7 @@ user_websocket_route = APIRouter()
 
 
 async def get_user(token: str) -> User:
-    db: DB = DB.get_instance()
-    user = await db.get_user(token)
+    user = await get_user_by_token(token)
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
     return user
@@ -21,7 +20,7 @@ async def get_user(token: str) -> User:
 
 @user_websocket_route.websocket("/user_ws/connect")
 async def connect_bot_ws(ws: WebSocket, user: User = Depends(get_user)):
-    data_api: DataApi = DataApi.get_instance()
+    data_api: MessageApi = MessageApi.get_instance()
     connection_manager: ConnectionManager = ConnectionManager.get_instance()
     session_id = uuid4()
 

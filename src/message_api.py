@@ -8,7 +8,7 @@ from models import User, Bot
 from data_layer.user import get_bot_by_bot_name
 
 
-class DataApi:
+class MessageApi:
     _instance = None
 
     @classmethod

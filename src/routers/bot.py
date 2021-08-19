@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from models import Bot
-from data_api import DataApi
+from message_api import MessageApi
 from data_layer.bot import (
     get_bot_by_token,
     get_bot_unread_messages,
@@ -27,7 +27,7 @@ async def pull_messages_as_bot(bot: Bot = Depends(get_bot)):
 
 @bot_router.post("/push")
 async def push_message_as_bot(chat_id: str, message: str, bot: Bot = Depends(get_bot)):
-    data_api: DataApi = DataApi.get_instance()
+    data_api: MessageApi = MessageApi.get_instance()
     try:
         await data_api.bot_push(bot, chat_id, message)
     except KeyError:
