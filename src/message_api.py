@@ -30,9 +30,9 @@ class MessageApi:
 
     async def bot_push(self, bot: Bot, chat_id: str, message: str):
         chat = await self.db.get_chat_by_chat_id(chat_id)
-        if chat.botname != bot.botname:
-            raise KeyError
         if chat is None:
+            raise KeyError
+        if chat.botname != bot.botname:
             raise KeyError
         await self.db.create_message(chat.id, chat.size, "bot", message)
         user_token = chat.user_token
