@@ -6,6 +6,7 @@ from fastapi.templating import Jinja2Templates
 # for client side serving
 from routers.bot import bot_router
 from routers.user import user_router
+from routers.admin import admin_router
 from db import DB
 from data_api import DataApi
 from websockets_routes import ConnectionManager, user_websocket_route, bot_websocket_route
@@ -30,6 +31,7 @@ app.add_middleware(
 
 app.include_router(bot_router)
 app.include_router(user_router)
+app.include_router(admin_router)
 app.include_router(bot_websocket_route)
 app.include_router(user_websocket_route)
 
@@ -55,12 +57,12 @@ async def startup():
     import aiosqlite
     # Initialize
     db = DB()
-    # for testing..
     try:
         await db.create_tables()
     except aiosqlite.OperationalError:
         pass
     else:
+        # for testing
         await db.create_admin_user()
 
     data_api = DataApi()

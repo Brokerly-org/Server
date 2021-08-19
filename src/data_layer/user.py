@@ -54,6 +54,8 @@ async def get_bots_last_online(user_token: str):
 async def find_user_by_email_and_password(email: str, password_hash: str) -> User:
     db: DB = DB.get_instance()
     user_data = await db.find_user_by_email_and_password(email, password_hash)
+    if user_data is None:
+        return
     user = User(token=user_data[0], name=user_data[1], email=user_data[2], password_hash=user_data[3])
     return user
 
@@ -69,6 +71,8 @@ async def create_chat(user_token: str, botname: str) -> str:
 async def get_bot_by_bot_name(botname: str) -> Bot:
     db: DB = DB.get_instance()
     bot_data = await db.get_bot_by_bot_name(botname)
+    if bot_data is None:
+        return
     bot = Bot(
         token=bot_data[0],
         botname=bot_data[1],
