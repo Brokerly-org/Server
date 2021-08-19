@@ -5,6 +5,7 @@ from uuid import UUID
 from db import DB
 
 from models import User, Bot
+from data_layer.user import get_bot_by_bot_name
 
 
 class DataApi:
@@ -38,7 +39,7 @@ class DataApi:
         if chat is None:
             raise KeyError  # TODO: replace with costume exception
         await self.db.create_message(chat.id, chat.size, "user", message)
-        bot = await self.db.get_bot_by_bot_name(chat.botname)
+        bot = await get_bot_by_bot_name(chat.botname)
         bot_token = bot.token
         await self._notify_listeners(bot_token)
 
