@@ -134,4 +134,5 @@ src/templates/*
 !src/static/.gitkeep
 !src/templates/.gitkeep
 
-data/*
+src/data/*
+!src/data/.gitkeep
