@@ -35,4 +35,3 @@ class User(BaseModel):
         for chat in self.chats.values():
             chat.close()
         # TODO: remove user
-

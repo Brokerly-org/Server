@@ -18,7 +18,12 @@ async def get_user(user_token: str) -> User:
     user_data = await db.get_user(user_token)
     if not user_data:
         return
-    user = User(token=user_data[0], name=user_data[1], email=user_data[2], password_hash=user_data[3])
+    user = User(
+        token=user_data[0],
+        name=user_data[1],
+        email=user_data[2],
+        password_hash=user_data[3],
+    )
     return user
 
 
@@ -38,7 +43,9 @@ async def get_user_unread_messages(user_token: str):
         )
         chats[botname].append(message.dict())
         await db.mark_message_as_read(message.index, message.chat_id)
-    messages = [{"chat": botname, "messages": messages} for botname, messages in chats.items()]
+    messages = [
+        {"chat": botname, "messages": messages} for botname, messages in chats.items()
+    ]
     return messages
 
 
@@ -56,7 +63,12 @@ async def find_user_by_email_and_password(email: str, password_hash: str) -> Use
     user_data = await db.find_user_by_email_and_password(email, password_hash)
     if user_data is None:
         return
-    user = User(token=user_data[0], name=user_data[1], email=user_data[2], password_hash=user_data[3])
+    user = User(
+        token=user_data[0],
+        name=user_data[1],
+        email=user_data[2],
+        password_hash=user_data[3],
+    )
     return user
 
 

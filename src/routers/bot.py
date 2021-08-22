@@ -14,7 +14,9 @@ bot_router = APIRouter(prefix="/bot", tags=["bot"])
 async def get_bot(token: str) -> Bot:
     bot = await get_bot_by_token(token)
     if bot is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid bot token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid bot token"
+        )
     return bot
 
 
@@ -31,5 +33,7 @@ async def push_message_as_bot(chat_id: str, message: str, bot: Bot = Depends(get
     try:
         await data_api.bot_push(bot, chat_id, message)
     except KeyError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Chat Id not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Chat Id not found"
+        )
     return

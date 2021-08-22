@@ -9,14 +9,27 @@ async def create_admin_user():
     db: DB = DB.get_instance()
     password = "admin"
     password_hash = sha256(password.encode()).hexdigest()
-    new_user = User(token="admin", name="admin", email="admin@admin.com", password_hash=password_hash)
+    new_user = User(
+        token="admin",
+        name="admin",
+        email="admin@admin.com",
+        password_hash=password_hash,
+    )
     await db.create_user(new_user)
 
 
-async def create_bot(user_token: str, botname: str, title: str, description: str) -> str:
+async def create_bot(
+    user_token: str, botname: str, title: str, description: str
+) -> str:
     db: DB = DB.get_instance()
     token = token_urlsafe(15)
-    new_bot = Bot(token=token, botname=botname, title=title, description=description, owner_token=user_token)
+    new_bot = Bot(
+        token=token,
+        botname=botname,
+        title=title,
+        description=description,
+        owner_token=user_token,
+    )
     await db.create_bot(new_bot)
     return token
 
@@ -42,5 +55,3 @@ async def get_bot_list(user_token: str):
         )
         bots.append(bot)
     return bots
-
-

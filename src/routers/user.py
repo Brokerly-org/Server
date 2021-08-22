@@ -1,6 +1,7 @@
 from hashlib import sha256
 
 from fastapi import APIRouter, Depends, HTTPException, status
+
 # from pydantic import EmailStr
 
 from models import User
@@ -16,18 +17,20 @@ from data_layer.user import (
     get_user_updates_count,
 )
 
-user_router = APIRouter(prefix="/user", tags=['user'])
+user_router = APIRouter(prefix="/user", tags=["user"])
 
 
 async def get_user(token: str) -> User:
     user = await get_user_by_token(token)
     if user is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid user token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid user token"
+        )
     return user
 
 
 @user_router.post("/register")
-async def register(email: str, password: str, name: str): # TODO change to mail
+async def register(email: str, password: str, name: str):  # TODO change to mail
     password_hash = sha256(password.encode()).hexdigest()
     user_token = await create_user(name=name, email=email, password_hash=password_hash)
     return {"token": user_token}
@@ -38,7 +41,9 @@ async def login(email: str, password: str):  # TODO change to mail
     password_hash = sha256(password.encode()).hexdigest()
     user = await find_user_by_email_and_password(email, password_hash)
     if user is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password"
+        )
     return {"token": user.token}
 
 
@@ -47,7 +52,9 @@ async def push_message_to_bot(message: str, botname: str, user=Depends(get_user)
     data_api: MessageApi = MessageApi.get_instance()
     bot = await get_bot_by_bot_name(botname)
     if bot is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="botname not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="botname not found"
+        )
     try:
         await data_api.user_push(user, botname, message)
     except KeyError:
@@ -65,7 +72,9 @@ async def bots_status(user=Depends(get_user)):
 async def bot_info(botname: str):
     bot = await get_bot_by_bot_name(botname)
     if bot is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bot not found.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Bot not found."
+        )
     return bot.dict(include={"title", "botname", "description", "last_online"})
 
 

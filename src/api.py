@@ -9,7 +9,11 @@ from routers.user import user_router
 from routers.admin import admin_router
 from db import DB
 from message_api import MessageApi
-from websockets_routes import ConnectionManager, user_websocket_route, bot_websocket_route
+from websockets_routes import (
+    ConnectionManager,
+    user_websocket_route,
+    bot_websocket_route,
+)
 
 
 app = FastAPI(title="Brokerly")
@@ -41,10 +45,13 @@ app.include_router(user_websocket_route)
 async def serve_spa(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-for route in ('login', 'register', 'dashboard'):
-    @app.get(f'/{route}')
+
+for route in ("login", "register", "dashboard"):
+
+    @app.get(f"/{route}")
     async def serve_spa(request: Request):
         return templates.TemplateResponse("index.html", {"request": request})
+
 
 # TODO route all spa
 # @app.get("/{rest_of_path:path}")
@@ -55,6 +62,7 @@ for route in ('login', 'register', 'dashboard'):
 @app.on_event("startup")
 async def startup():
     import aiosqlite
+
     # Initialize
     db = DB()
     try:
@@ -73,4 +81,3 @@ async def startup():
 async def shutdown():
     db: DB = DB.get_instance()
     db.close()
-

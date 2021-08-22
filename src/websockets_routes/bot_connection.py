@@ -1,12 +1,17 @@
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException, status, Depends, WebSocket, WebSocketDisconnect
+from fastapi import (
+    APIRouter,
+    HTTPException,
+    status,
+    Depends,
+    WebSocket,
+    WebSocketDisconnect,
+)
 
 from models import Bot
 from message_api import MessageApi
-from data_layer.bot import (
-    get_bot_by_token
-)
+from data_layer.bot import get_bot_by_token
 from .connections_manager import ConnectionManager
 
 
@@ -16,7 +21,9 @@ bot_websocket_route = APIRouter()
 async def get_bot(token: str) -> Bot:
     bot = await get_bot_by_token(token)
     if bot is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
+        )
     return bot
 
 

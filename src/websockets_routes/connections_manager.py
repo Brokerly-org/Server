@@ -52,4 +52,3 @@ class ConnectionManager:
     def unregister_connection(self, token: str, session_id: UUID):
         del self.connections[token]
         self.data_api.remove_listener(token, session_id)
-

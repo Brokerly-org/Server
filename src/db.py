@@ -139,7 +139,7 @@ class DB:
                     user.name,
                     user.email,
                     user.password_hash,
-                ]
+                ],
             )
             await db.commit()
 
@@ -155,7 +155,7 @@ class DB:
                     bot.description,
                     bot.owner_token,
                     bot.last_online,
-                ]
+                ],
             )
             await db.commit()
 
@@ -163,14 +163,7 @@ class DB:
         async with aiosqlite.connect(self.db_file) as db:
             sql = "INSERT INTO chats VALUES (?, ?, ?, ?, ?)"
             await db.execute_insert(
-                sql,
-                [
-                    chat.id,
-                    chat.botname,
-                    chat.user_token,
-                    chat.active,
-                    chat.size
-                ]
+                sql, [chat.id, chat.botname, chat.user_token, chat.active, chat.size]
             )
             await db.commit()
 
@@ -185,8 +178,8 @@ class DB:
                     message.sender,
                     message.content,
                     message.read_status,
-                    message.created_at
-                ]
+                    message.created_at,
+                ],
             )
             await db.commit()
 
@@ -225,15 +218,28 @@ class DB:
     async def create_admin_user(self):
         password = "admin"
         password_hash = sha256(password.encode()).hexdigest()
-        new_user = User(token="admin", name="admin", email="admin@admin.com", password_hash=password_hash)
+        new_user = User(
+            token="admin",
+            name="admin",
+            email="admin@admin.com",
+            password_hash=password_hash,
+        )
         await self.create_user(new_user)
 
     async def create_message(self, chat_id: str, index: int, sender: str, content: str):
-        new_message = Message(chat_id=chat_id, index=index, content=content, sender=sender, read_status=False)
+        new_message = Message(
+            chat_id=chat_id,
+            index=index,
+            content=content,
+            sender=sender,
+            read_status=False,
+        )
         await self._create_message(new_message)
         await self._update_chat_size(chat_id)
 
-    async def get_chat_by_user_token_and_botname(self, user_token: str, botname:str) -> Chat:
+    async def get_chat_by_user_token_and_botname(
+        self, user_token: str, botname: str
+    ) -> Chat:
         chat_data = await self._get_chat(user_token, botname)
         if not chat_data:
             return
@@ -242,7 +248,7 @@ class DB:
             botname=chat_data[1],
             user_token=chat_data[2],
             active=chat_data[3],
-            size=chat_data[4]
+            size=chat_data[4],
         )
         return chat
 
@@ -255,7 +261,7 @@ class DB:
             botname=chat_data[1],
             user_token=chat_data[2],
             active=chat_data[3],
-            size=chat_data[4]
+            size=chat_data[4],
         )
         return chat
 

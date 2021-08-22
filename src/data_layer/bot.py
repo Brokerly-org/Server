@@ -42,5 +42,7 @@ async def get_bot_unread_messages(botname: str):
         )
         chats[message.chat_id].append(message.dict())
         await db.mark_message_as_read(message.index, message.chat_id)
-    messages = [{"chat": chat_id, "messages": messages} for chat_id, messages in chats.items()]
+    messages = [
+        {"chat": chat_id, "messages": messages} for chat_id, messages in chats.items()
+    ]
     return messages
