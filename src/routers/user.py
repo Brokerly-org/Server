@@ -13,6 +13,7 @@ from data_layer.user import (
     create_chat,
     get_bots_last_online,
     get_user_unread_messages,
+    get_user_updates_count,
 )
 
 user_router = APIRouter(prefix="/user", tags=['user'])
@@ -72,3 +73,8 @@ async def bot_info(botname: str):
 async def pull_messages(user=Depends(get_user)):
     messages = await get_user_unread_messages(user.token)
     return {"messages": messages}
+
+
+@user_router.get("/has_updates")
+async def has_updates(user=Depends(get_user)):
+    return await get_user_updates_count(user.token)

@@ -82,3 +82,8 @@ async def get_bot_by_bot_name(botname: str) -> Bot:
         last_online=bot_data[5],
     )
     return bot
+
+
+async def get_user_updates_count(user_token: str) -> int:
+    db: DB = DB.get_instance()
+    return await db.get_user_unread_messages_count(user_token)

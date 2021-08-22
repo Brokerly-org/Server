@@ -103,6 +103,20 @@ class DB:
                 messages = await cursor.fetchall()
                 return messages
 
+    async def get_user_unread_messages_count(self, user_token: str) -> int:
+        async with aiosqlite.connect(self.db_file) as db:
+            sql = """
+            SELECT COUNT(*)
+            FROM messages
+            INNER JOIN chats ON 
+            messages.chat_id = chats.id AND messages.read_status = 0 AND messages.sender = 'bot'
+            INNER JOIN users ON 
+            users.token = chats.user_token AND users.token = ?
+            """
+            async with db.execute(sql, [user_token]) as cursor:
+                count = await cursor.fetchone()
+                return count[0]
+
     async def mark_message_as_read(self, message_index: int, chat_id: str):
         async with aiosqlite.connect(self.db_file) as db:
             sql = "UPDATE messages SET read_status = 1 WHERE message_index = ? AND chat_id = ?"
