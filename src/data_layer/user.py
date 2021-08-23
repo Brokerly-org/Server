@@ -1,7 +1,7 @@
 from secrets import token_urlsafe
 from collections import defaultdict
 
-from models import User, Message, Chat, Bot
+from models import User, Message, Chat, Bot, Widget
 from db import DB
 
 
@@ -32,16 +32,17 @@ async def get_user_unread_messages(user_token: str):
     messages_data = await db.get_user_unread_messages(user_token)
     chats = defaultdict(list)
     for message in messages_data:
-        botname = message[5]
+        botname = message[6]
         message = Message(
             content=message[0],
             index=message[1],
             sender=message[2],
             created_at=message[3],
-            chat_id=message[4],
+            widget=Widget.parse_raw(message[4]),
+            chat_id=message[5],
             read_status=False,
         )
-        chats[botname].append(message.dict())
+        chats[botname].append(message.dict(exclude={"chat_id", "read_status"}))
         await db.mark_message_as_read(message.index, message.chat_id)
     messages = [
         {"chat": botname, "messages": messages} for botname, messages in chats.items()

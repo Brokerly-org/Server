@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from models import Bot
+from models import Bot, InputMessage
 from message_api import MessageApi
 from data_layer.bot import (
     get_bot_by_token,
@@ -28,7 +28,7 @@ async def pull_messages_as_bot(bot: Bot = Depends(get_bot)):
 
 
 @bot_router.post("/push")
-async def push_message_as_bot(chat_id: str, message: str, bot: Bot = Depends(get_bot)):
+async def push_message_as_bot(chat_id: str, message: InputMessage, bot: Bot = Depends(get_bot)):
     data_api: MessageApi = MessageApi.get_instance()
     try:
         await data_api.bot_push(bot, chat_id, message)

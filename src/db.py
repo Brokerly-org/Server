@@ -1,9 +1,8 @@
 from hashlib import sha256
 
-
 import aiosqlite
 
-from models import Bot, User, Chat, Message
+from models import Bot, User, Chat, Message, InputMessage
 
 
 class DB:
@@ -28,7 +27,7 @@ class DB:
             await db.execute(sql)
             sql = "CREATE TABLE chats (id TEXT, botname TEXT, user_token TEXT, active BOOL, size INT)"
             await db.execute(sql)
-            sql = "CREATE TABLE messages (chat_id TEXT, message_index INT, sender TEXT, content TEXT, read_status BOOL, created_at REAL)"
+            sql = "CREATE TABLE messages (chat_id TEXT, message_index INT, sender TEXT, content TEXT, read_status BOOL, created_at REAL, widget TEXT)"
             await db.execute(sql)
             await db.commit()
 
@@ -92,7 +91,9 @@ class DB:
     async def get_user_unread_messages(self, user_token: str):
         async with aiosqlite.connect(self.db_file) as db:
             sql = """
-            SELECT messages.content, messages.message_index, messages.sender, messages.created_at, chats.id, chats.botname
+            SELECT 
+            messages.content, messages.message_index, messages.sender,
+            messages.created_at, messages.widget, chats.id, chats.botname
             FROM messages
             INNER JOIN chats ON 
             messages.chat_id = chats.id AND messages.read_status = 0 AND messages.sender = 'bot'
@@ -169,7 +170,7 @@ class DB:
 
     async def _create_message(self, message: Message):
         async with aiosqlite.connect(self.db_file) as db:
-            sql = "INSERT INTO messages VALUES (?, ?, ?, ?, ?, ?)"
+            sql = "INSERT INTO messages VALUES (?, ?, ?, ?, ?, ?, ?)"
             await db.execute_insert(
                 sql,
                 [
@@ -179,6 +180,7 @@ class DB:
                     message.content,
                     message.read_status,
                     message.created_at,
+                    message.widget.json(),
                 ],
             )
             await db.commit()
@@ -226,13 +228,14 @@ class DB:
         )
         await self.create_user(new_user)
 
-    async def create_message(self, chat_id: str, index: int, sender: str, content: str):
+    async def create_message(self, chat_id: str, index: int, sender: str, content: InputMessage):
         new_message = Message(
             chat_id=chat_id,
             index=index,
-            content=content,
             sender=sender,
             read_status=False,
+            content=content.text,
+            widget=content.widget,
         )
         await self._create_message(new_message)
         await self._update_chat_size(chat_id)

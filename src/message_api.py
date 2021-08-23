@@ -4,7 +4,7 @@ from uuid import UUID
 
 from db import DB
 
-from models import User, Bot
+from models import User, Bot, InputMessage
 from data_layer.user import get_bot_by_bot_name
 
 
@@ -28,7 +28,7 @@ class MessageApi:
         for callback in callbacks:
             await callback()
 
-    async def bot_push(self, bot: Bot, chat_id: str, message: str):
+    async def bot_push(self, bot: Bot, chat_id: str, message: InputMessage):
         chat = await self.db.get_chat_by_chat_id(chat_id)
         if chat is None:
             raise KeyError
