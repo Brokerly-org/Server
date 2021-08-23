@@ -17,7 +17,7 @@ from websockets_routes import (
 
 
 app = FastAPI(title="Brokerly")
-dashboard_router.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 app.include_router(auth_router)
