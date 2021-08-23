@@ -1,12 +1,11 @@
-from fastapi import FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
+from fastapi import FastAPI
 
 # for client side serving
+from routers.dashboard import dashboard_router
 from routers.bot import bot_router
 from routers.user import user_router
 from routers.admin import admin_router
+from routers.auth import auth_router
 from db import DB
 from message_api import MessageApi
 from websockets_routes import (
@@ -19,44 +18,13 @@ from websockets_routes import (
 app = FastAPI(title="Brokerly")
 
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
-
-# Allow CORS, TODO change to real origins
-origins = ["*"]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
+app.include_router(auth_router)
 app.include_router(bot_router)
 app.include_router(user_router)
 app.include_router(admin_router)
 app.include_router(bot_websocket_route)
 app.include_router(user_websocket_route)
-
-
-# svelte spa
-@app.get("/")
-async def serve_spa(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
-
-
-for route in ("login", "register", "dashboard"):
-
-    @app.get(f"/{route}")
-    async def serve_spa(request: Request):
-        return templates.TemplateResponse("index.html", {"request": request})
-
-
-# TODO route all spa
-# @app.get("/{rest_of_path:path}")
-# async def serve_spa_all(request: Request, rest_of_path: str):
-#     return templates.TemplateResponse("index.html", {"request": request})
+app.include_router(dashboard_router)
 
 
 @app.on_event("startup")
