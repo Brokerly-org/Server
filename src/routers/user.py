@@ -26,7 +26,7 @@ async def get_user(token: str) -> User:
 
 
 @user_router.post("/push")
-async def push_message_to_bot(message: InputMessage, botname: str, user=Depends(get_user)):
+async def push_message_to_bot(message: str, botname: str, user=Depends(get_user)):
     data_api: MessageApi = MessageApi.get_instance()
     bot = await get_bot_by_bot_name(botname)
     if bot is None:

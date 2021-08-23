@@ -42,6 +42,7 @@ class MessageApi:
         chat = await self.db.get_chat_by_user_token_and_botname(user.token, botname)
         if chat is None:
             raise KeyError  # TODO: replace with costume exception
+        message = InputMessage(text=message)
         await self.db.create_message(chat.id, chat.size, "user", message)
         bot = await get_bot_by_bot_name(chat.botname)
         bot_token = bot.token
