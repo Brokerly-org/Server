@@ -38,7 +38,7 @@ async def get_user_unread_messages(user_token: str):
             index=message[1],
             sender=message[2],
             created_at=message[3],
-            widget=Widget.parse_raw(message[4]),
+            widget=Widget.parse_raw(message[4]) if message[4] != "non" else None,
             chat_id=message[5],
             read_status=False,
         )

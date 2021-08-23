@@ -180,7 +180,7 @@ class DB:
                     message.content,
                     message.read_status,
                     message.created_at,
-                    message.widget.json(),
+                    message.widget.json() if message.widget else "non",
                 ],
             )
             await db.commit()
