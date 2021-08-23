@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
 # for client side serving
 from routers.dashboard import dashboard_router
@@ -16,6 +17,7 @@ from websockets_routes import (
 
 
 app = FastAPI(title="Brokerly")
+dashboard_router.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 app.include_router(auth_router)

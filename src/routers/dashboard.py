@@ -1,10 +1,8 @@
 from fastapi import APIRouter, Request
-from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 dashboard_router = APIRouter()
 
-dashboard_router.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 
