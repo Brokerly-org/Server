@@ -34,11 +34,11 @@ class ConnectionManager:
             return
         user = await get_user(token)
         if user is not None:
-            user_messages = get_user_unread_messages(token)
+            user_messages = await get_user_unread_messages(token)
             await ws.send_json(user_messages)
         else:
             bot = await get_bot_by_token(token)
-            bot_messages = get_bot_unread_messages(bot.botname)
+            bot_messages = await get_bot_unread_messages(bot.botname)
             await ws.send_json(bot_messages)
 
     async def _register_listener(self, token: str, session_id: UUID):
