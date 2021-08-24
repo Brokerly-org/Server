@@ -2,33 +2,24 @@ from uuid import uuid4
 
 from fastapi import (
     APIRouter,
-    HTTPException,
-    status,
     Depends,
     WebSocket,
     WebSocketDisconnect,
 )
 
-from models import Bot
-from message_api import MessageApi
-from data_layer.bot import get_bot_by_token
-from .connections_manager import ConnectionManager
+
+from core.models.connections_manager import ConnectionManager
+from core.schemas.bot import Bot
+from core.models.message_api import MessageApi
+
+from ...validators import validate_bot_token
 
 
-bot_websocket_route = APIRouter()
+ws_bot_connect_endpoint = APIRouter()
 
 
-async def get_bot(token: str) -> Bot:
-    bot = await get_bot_by_token(token)
-    if bot is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
-        )
-    return bot
-
-
-@bot_websocket_route.websocket("/bot_ws/connect")
-async def connect_bot_ws(ws: WebSocket, bot: Bot = Depends(get_bot)):
+@ws_bot_connect_endpoint.websocket("/bot_connect")
+async def connect_bot_ws(ws: WebSocket, bot: Bot = Depends(validate_bot_token)):
     data_api: MessageApi = MessageApi.get_instance()
     connection_manager: ConnectionManager = ConnectionManager.get_instance()
     session_id = uuid4()

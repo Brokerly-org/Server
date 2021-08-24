@@ -1,31 +1,22 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-# for client side serving
-from routers.dashboard import dashboard_router
-from routers.bot import bot_router
-from routers.user import user_router
-from routers.admin import admin_router
-from routers.auth import auth_router
-from db import DB
-from message_api import MessageApi
-from websockets_routes import (
-    ConnectionManager,
-    user_websocket_route,
-    bot_websocket_route,
-)
+from core.models.database import DB
+from core.models.message_api import MessageApi
+from core.models.connections_manager import ConnectionManager
+
+from v1 import user_router, bot_router, auth_router, admin_router, ws_router, dashboard_router
 
 
 app = FastAPI(title="Brokerly")
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory="core/views/static"), name="static")
 
 
 app.include_router(auth_router)
 app.include_router(bot_router)
 app.include_router(user_router)
 app.include_router(admin_router)
-app.include_router(bot_websocket_route)
-app.include_router(user_websocket_route)
+app.include_router(ws_router)
 app.include_router(dashboard_router)
 
 

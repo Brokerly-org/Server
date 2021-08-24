@@ -2,15 +2,9 @@ from uuid import UUID
 
 from fastapi import WebSocket
 
-from data_layer.user import (
-    get_user_unread_messages,
-    get_user,
-)
-from data_layer.bot import (
-    get_bot_by_token,
-    get_bot_unread_messages,
-)
-from message_api import MessageApi
+
+from core.models.message_api import MessageApi
+from core.models.orm import load_user_by_token, load_bot_by_bot_name, get_user_unread_messages, get_bot_unread_messages
 
 
 class ConnectionManager:
@@ -28,16 +22,17 @@ class ConnectionManager:
 
         self.__class__._instance = self
 
-    async def callback(self, token: str):
-        ws: WebSocket = self.connections.get(token)
+    async def callback(self, identifier: str):
+        # identifier == user token or botname
+        ws: WebSocket = self.connections.get(identifier)
         if ws is None:
             return
-        user = await get_user(token)
+        user = await load_user_by_token(identifier)
         if user is not None:
-            user_messages = await get_user_unread_messages(token)
+            user_messages = await get_user_unread_messages(identifier)
             await ws.send_json(user_messages)
         else:
-            bot = await get_bot_by_token(token)
+            bot = await load_bot_by_bot_name(identifier)
             bot_messages = await get_bot_unread_messages(bot.botname)
             await ws.send_json(bot_messages)
 

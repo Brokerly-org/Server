@@ -129,10 +129,10 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-src/static/*
-src/templates/*
-!src/static/.gitkeep
-!src/templates/.gitkeep
+src/core/views/static/*
+src/core/views/templates/*
+!src/core/views/static/.gitkeep
+!src/core/views/templates/.gitkeep
 
 src/data/*
 !src/data/.gitkeep

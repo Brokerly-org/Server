@@ -2,10 +2,11 @@ from typing import Callable
 from collections import defaultdict
 from uuid import UUID
 
-from db import DB
-
-from models import User, Bot, InputMessage
-from data_layer.user import get_bot_by_bot_name
+from core.models.database import DB
+from core.models.orm import load_chat_by_botname_and_user_token, load_chat_by_id, create_message
+from core.schemas.bot import Bot
+from core.schemas.user import User
+from core.schemas.message import InputMessage
 
 
 class MessageApi:
@@ -29,24 +30,21 @@ class MessageApi:
             await callback()
 
     async def bot_push(self, bot: Bot, chat_id: str, message: InputMessage):
-        chat = await self.db.get_chat_by_chat_id(chat_id)
+        chat = await load_chat_by_id(chat_id)
         if chat is None:
             raise KeyError
         if chat.botname != bot.botname:
             raise KeyError
-        await self.db.create_message(chat.id, chat.size, "bot", message)
-        user_token = chat.user_token
-        await self._notify_listeners(user_token)
+        await create_message(chat.id, chat.size, "bot", message)
+        await self._notify_listeners(chat.user_token)
 
     async def user_push(self, user: User, botname: str, message: str):
-        chat = await self.db.get_chat_by_user_token_and_botname(user.token, botname)
+        chat = await load_chat_by_botname_and_user_token(botname, user.token)
         if chat is None:
             raise KeyError  # TODO: replace with costume exception
         message = InputMessage(text=message)
-        await self.db.create_message(chat.id, chat.size, "user", message)
-        bot = await get_bot_by_bot_name(chat.botname)
-        bot_token = bot.token
-        await self._notify_listeners(bot_token)
+        await create_message(chat.id, chat.size, "user", message)
+        await self._notify_listeners(botname)
 
     def listen_on(self, token: str, callback: Callable, session_id: UUID):
         self.listeners[token][session_id] = callback
