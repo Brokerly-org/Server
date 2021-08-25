@@ -45,6 +45,6 @@ admin_router.include_router(create_bot_endpoint)
 admin_router.include_router(delete_bot_endpoint)
 admin_router.include_router(get_my_bots_endpoint)
 
-ws_router = APIRouter(prefix="/ws")
+ws_router = APIRouter()
 ws_router.include_router(ws_bot_connect_endpoint)
 ws_router.include_router(ws_user_connect_endpoint)
