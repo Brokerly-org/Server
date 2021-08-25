@@ -25,7 +25,7 @@ async def connect_bot_ws(ws: WebSocket, bot: Bot = Depends(validate_bot_token)):
     session_id = uuid4()
 
     await ws.accept()
-    await connection_manager.register_connection(ws, bot.token, session_id)
+    await connection_manager.register_connection(ws, bot.botname, session_id)
 
     try:
         while True:
