@@ -37,14 +37,14 @@ class ConnectionManager:
             bot_messages = await BotModel.get_unread_messages(bot.botname)
             await ws.send_json(bot_messages)
 
-    async def _register_listener(self, token: str, session_id: UUID):
-        self.data_api.listen_on(token, lambda: self.callback(token), session_id)
-        await self.callback(token)
+    async def _register_listener(self, identifier: str, session_id: UUID):
+        self.data_api.listen_on(identifier, lambda: self.callback(identifier), session_id)
+        await self.callback(identifier)
 
-    async def register_connection(self, ws: WebSocket, token: str, session_id: UUID):
-        self.connections[token] = ws
-        await self._register_listener(token, session_id)
+    async def register_connection(self, ws: WebSocket, identifier: str, session_id: UUID):
+        self.connections[identifier] = ws
+        await self._register_listener(identifier, session_id)
 
-    def unregister_connection(self, token: str, session_id: UUID):
-        del self.connections[token]
-        self.data_api.remove_listener(token, session_id)
+    def unregister_connection(self, identifier: str, session_id: UUID):
+        del self.connections[identifier]
+        self.data_api.remove_listener(identifier, session_id)

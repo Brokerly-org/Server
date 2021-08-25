@@ -35,5 +35,5 @@ async def connect_user_ws(ws: WebSocket, user: User = Depends(validate_user_toke
             await data_api.user_push(user, chat_id, message)
     except WebSocketDisconnect:
         connection_manager.unregister_connection(
-            token=user.token, session_id=session_id
+            identifier=user.token, session_id=session_id
         )
