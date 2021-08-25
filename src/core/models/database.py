@@ -91,7 +91,7 @@ class DB:
             sql = """
             SELECT 
             messages.content, messages.message_index, messages.sender,
-            messages.created_at, messages.widget, chats.id, chats.botname
+            messages.created_at, messages.chat_id, messages.widget, chats.botname
             FROM messages
             INNER JOIN chats ON 
             messages.chat_id = chats.id AND messages.read_status = 0 AND messages.sender = 'bot'
@@ -197,11 +197,11 @@ class DB:
 
     async def find_user_by_email_and_password(self, email: str, password_hash: str):
         async with aiosqlite.connect(self.db_file) as db:
-            sql = "SELECT * FROM users WHERE email=? AND password_hash=?"
+            sql = "SELECT token FROM users WHERE email=? AND password_hash=?"
             # TODO: limit 1
             async with db.execute(sql, [email, password_hash]) as cursor:
-                user = await cursor.fetchone()
-                return user
+                user_token = await cursor.fetchone()
+                return user_token
 
     async def update_bot_last_online(self, botname: str, unix_time: float):
         async with aiosqlite.connect(self.db_file) as db:

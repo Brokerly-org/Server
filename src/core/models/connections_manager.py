@@ -4,7 +4,8 @@ from fastapi import WebSocket
 
 
 from core.models.message_api import MessageApi
-from core.models.orm import load_user_by_token, load_bot_by_bot_name, get_user_unread_messages, get_bot_unread_messages
+from core.models.orm.bot import BotModel
+from core.models.orm.user import UserModel
 
 
 class ConnectionManager:
@@ -27,13 +28,13 @@ class ConnectionManager:
         ws: WebSocket = self.connections.get(identifier)
         if ws is None:
             return
-        user = await load_user_by_token(identifier)
+        user = await UserModel.load_by_token(identifier)
         if user is not None:
-            user_messages = await get_user_unread_messages(identifier)
+            user_messages = await UserModel.get_unread_messages(identifier)
             await ws.send_json(user_messages)
         else:
-            bot = await load_bot_by_bot_name(identifier)
-            bot_messages = await get_bot_unread_messages(bot.botname)
+            bot = await BotModel.load_by_botname(identifier)
+            bot_messages = await BotModel.get_unread_messages(bot.botname)
             await ws.send_json(bot_messages)
 
     async def _register_listener(self, token: str, session_id: UUID):

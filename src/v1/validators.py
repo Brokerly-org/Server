@@ -2,11 +2,12 @@ from fastapi import HTTPException, status
 
 from core.schemas.user import User
 from core.schemas.bot import Bot
-from core.models.orm import load_bot_by_token, load_user_by_token
+from core.models.orm.bot import BotModel
+from core.models.orm.user import UserModel
 
 
 async def validate_user_token(token: str) -> User:
-    user = await load_user_by_token(token)
+    user = await UserModel.load_by_token(token)
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid user token"
@@ -23,7 +24,7 @@ async def validate_user_is_owner_of_bot(user: User, bot: Bot):
 
 
 async def validate_bot_token(token: str) -> Bot:
-    bot = await load_bot_by_token(token)
+    bot = await BotModel.load_by_token(token)
     if bot is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid bot token"

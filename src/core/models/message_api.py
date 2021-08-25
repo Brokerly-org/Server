@@ -3,7 +3,8 @@ from collections import defaultdict
 from uuid import UUID
 
 from core.models.database import DB
-from core.models.orm import load_chat_by_botname_and_user_token, load_chat_by_id, create_message
+from core.models.orm.chat import ChatModel
+from core.models.orm.message import MessageModel
 from core.schemas.bot import Bot
 from core.schemas.user import User
 from core.schemas.message import InputMessage
@@ -30,20 +31,20 @@ class MessageApi:
             await callback()
 
     async def bot_push(self, bot: Bot, chat_id: str, message: InputMessage):
-        chat = await load_chat_by_id(chat_id)
+        chat = await ChatModel.load_by_id(chat_id)
         if chat is None:
             raise KeyError
         if chat.botname != bot.botname:
             raise KeyError
-        await create_message(chat.id, chat.size, "bot", message)
+        await MessageModel.create(chat.id, chat.size, "bot", message)
         await self._notify_listeners(chat.user_token)
 
     async def user_push(self, user: User, botname: str, message: str):
-        chat = await load_chat_by_botname_and_user_token(botname, user.token)
+        chat = await ChatModel.load_by_botname_and_user_token(botname, user.token)
         if chat is None:
             raise KeyError  # TODO: replace with costume exception
         message = InputMessage(text=message)
-        await create_message(chat.id, chat.size, "user", message)
+        await MessageModel.create(chat.id, chat.size, "user", message)
         await self._notify_listeners(botname)
 
     def listen_on(self, token: str, callback: Callable, session_id: UUID):
