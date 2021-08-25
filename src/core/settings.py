@@ -15,6 +15,7 @@ class Settings(BaseSettings):
 
     dashboard_routes: Set[str] = {"/", "/dashboard", "/register", "/login"}
     dashboard_templates_path: DirectoryPath = "core/views/templates/"
+    dashboard_static_path: DirectoryPath = "core/views/static/"
 
     class Config:
         pass

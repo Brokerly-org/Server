@@ -3,11 +3,9 @@ from fastapi.templating import Jinja2Templates
 
 from core.settings import Settings
 
-
-dashboard_router = APIRouter()
 settings = Settings()
+dashboard_router = APIRouter()
 
-print(str(settings.dashboard_templates_path))
 templates = Jinja2Templates(directory=str(settings.dashboard_templates_path))
 
 
