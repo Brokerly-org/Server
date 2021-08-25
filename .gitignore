@@ -134,4 +134,5 @@ src/core/views/templates/*
 !src/core/views/static/.gitkeep
 !src/core/views/templates/.gitkeep
 
-src/data/data.db
+src/data/*
+!src/data/.gitkeep
