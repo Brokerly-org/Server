@@ -1,6 +1,8 @@
-FROM python:3
+FROM python:3.9-alpine
 
 WORKDIR /usr/src/app
+
+RUN apk add --no-cache gcc python3-dev
 
 RUN pip install --upgrade pip
 
