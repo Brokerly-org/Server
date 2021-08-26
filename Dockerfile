@@ -1,12 +1,14 @@
-FROM 3.9-alpine3.13
+FROM python:3.9-alpine3.13
+
+WORKDIR /usr/src/app
 
 RUN pip install --upgrade pip
 
-COPY requirements.txt /usr/src/app/
-RUN pip install --no-cache-dir -r /usr/src/app/requirements.txt
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r ./requirements.txt
 
-COPY /src /user/src/app
+COPY /src ./
 
 EXPOSE 9981
 
-CMD ["python", "/usr/src/app/main.py"]
+CMD ["python", "./main.py"]
