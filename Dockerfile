@@ -1,8 +1,8 @@
-FROM python:3.9-slim-stretch
+FROM python:3.6-alpine
 
 WORKDIR /usr/src/app
 
-RUN apt install --no-cache gcc python3-dev
+RUN apk add --no-cache gcc python3-dev musl-dev alpine-sdk
 
 RUN pip install --upgrade pip
 
