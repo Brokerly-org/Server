@@ -39,7 +39,7 @@ class UserModel:
         bots_status = await db.get_bots_status(user_token)
         bots = []
         for bot in bots_status:
-            bots.append({"botname": bot[1], "online_status": bot[0]})
+            bots.append({"botname": bot[1], "online_status": bool(bot[0])})
         return bots
 
     @classmethod
