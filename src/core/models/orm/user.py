@@ -34,12 +34,12 @@ class UserModel:
         return await db.get_user_unread_messages_count(user_token)
 
     @classmethod
-    async def get_bots_last_online(cls, user_token: str) -> list:
+    async def get_bots_online_status(cls, user_token: str) -> list:
         db: DB = DB.get_instance()
         bots_status = await db.get_bots_status(user_token)
         bots = []
         for bot in bots_status:
-            bots.append({"botname": bot[1], "last_online": bot[0]})
+            bots.append({"botname": bot[1], "online_status": bot[0]})
         return bots
 
     @classmethod
