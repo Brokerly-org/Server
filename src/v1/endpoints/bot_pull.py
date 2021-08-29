@@ -1,5 +1,3 @@
-from time import time
-
 from fastapi import APIRouter, Depends
 
 from core.models.orm.bot import BotModel
@@ -13,6 +11,5 @@ bot_pull_endpoint = APIRouter(tags=["bot"])
 @bot_pull_endpoint.get("/pull")
 async def pull_messages_as_bot(bot: Bot = Depends(validate_bot_token)):
     messages = await BotModel.get_unread_messages(botname=bot.botname)
-    await BotModel.update_last_online(bot.botname, time())
     return {"chats": messages}
 

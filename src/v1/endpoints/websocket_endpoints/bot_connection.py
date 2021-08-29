@@ -25,7 +25,7 @@ async def connect_bot_ws(ws: WebSocket, bot: Bot = Depends(validate_bot_token)):
     session_id = uuid4()
 
     await ws.accept()
-    await connection_manager.register_connection(ws, bot.botname, session_id)
+    await connection_manager.register_bot_connection(ws, bot.botname, session_id)
 
     try:
         while True:
@@ -34,4 +34,5 @@ async def connect_bot_ws(ws: WebSocket, bot: Bot = Depends(validate_bot_token)):
             chat_id = data["chat_id"]
             await data_api.bot_push(bot, chat_id, message)
     except WebSocketDisconnect:
-        connection_manager.unregister_connection(identifier=bot.botname, session_id=session_id)
+        await connection_manager.unregister_bot_connection(bot.botname, session_id=session_id)
+

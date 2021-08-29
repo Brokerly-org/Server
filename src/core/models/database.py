@@ -21,7 +21,7 @@ class DB:
         async with aiosqlite.connect(self.db_file) as db:
             sql = "CREATE TABLE users (token TEXT, name TEXT, email TEXT, password_hash TEXT)"
             await db.execute(sql)
-            sql = "CREATE TABLE bots (token TEXT, botname TEXT, title TEXT, description TEXT, owner_token TEXT, last_online REAL)"
+            sql = "CREATE TABLE bots (token TEXT, botname TEXT, title TEXT, description TEXT, owner_token TEXT, online_status BOOL)"
             await db.execute(sql)
             sql = "CREATE TABLE chats (id TEXT, botname TEXT, user_token TEXT, active BOOL, size INT)"
             await db.execute(sql)
@@ -56,7 +56,7 @@ class DB:
     async def get_bots_status(self, user_token: str):
         async with aiosqlite.connect(self.db_file) as db:
             sql = """
-            SELECT bots.last_online, bots.botname
+            SELECT bots.online_status, bots.botname
             FROM bots
             INNER JOIN chats ON 
             bots.botname = chats.botname 
@@ -142,7 +142,7 @@ class DB:
             )
             await db.commit()
 
-    async def create_bot(self, token: str, botname: str, title: str, description: str, owner_token: str, last_online: float):
+    async def create_bot(self, token: str, botname: str, title: str, description: str, owner_token: str, online_status: bool):
         async with aiosqlite.connect(self.db_file) as db:
             sql = "INSERT INTO bots VALUES (?, ?, ?, ?, ?, ?)"
             await db.execute_insert(
@@ -153,7 +153,7 @@ class DB:
                     title,
                     description,
                     owner_token,
-                    last_online,
+                    int(online_status),
                 ],
             )
             await db.commit()
@@ -203,10 +203,16 @@ class DB:
                 user_token = await cursor.fetchone()
                 return user_token
 
-    async def update_bot_last_online(self, botname: str, unix_time: float):
+    # async def update_bot_last_online(self, botname: str, unix_time: float):
+    #     async with aiosqlite.connect(self.db_file) as db:
+    #         sql = "UPDATE bots SET last_online=? WHERE botname=?"
+    #         await db.execute(sql, [unix_time, botname])
+    #         await db.commit()
+
+    async def update_bot_online_status(self, botname: str, status: bool):
         async with aiosqlite.connect(self.db_file) as db:
-            sql = "UPDATE bots SET last_online=? WHERE botname=?"
-            await db.execute(sql, [unix_time, botname])
+            sql = "UPDATE bots SET online_status=? WHERE botname=?"
+            await db.execute(sql, [int(status), botname])
             await db.commit()
 
     async def increase_chat_size(self, chat_id: str):

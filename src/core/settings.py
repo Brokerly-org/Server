@@ -11,7 +11,7 @@ from pydantic import (
 class Settings(BaseSettings):
     is_production: bool = Field(default=False, env="IS_PRODUCTION")
 
-    sqlite_db_file: FilePath = "data/data.db"
+    sqlite_db_file: str = "data/data.db"
 
     dashboard_routes: Set[str] = {"/", "/dashboard", "/register", "/login"}
     dashboard_templates_path: DirectoryPath = "core/views/templates/"

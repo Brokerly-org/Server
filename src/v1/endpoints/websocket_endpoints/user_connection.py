@@ -25,7 +25,7 @@ async def connect_user_ws(ws: WebSocket, user: User = Depends(validate_user_toke
     session_id = uuid4()
 
     await ws.accept()
-    await connection_manager.register_connection(ws, user.token, session_id)
+    await connection_manager.register_user_connection(ws, user.token, session_id)
 
     try:
         while True:
@@ -34,6 +34,6 @@ async def connect_user_ws(ws: WebSocket, user: User = Depends(validate_user_toke
             chat_id = data["chat_id"]
             await data_api.user_push(user, chat_id, message)
     except WebSocketDisconnect:
-        connection_manager.unregister_connection(
-            identifier=user.token, session_id=session_id
+        await connection_manager.unregister_user_connection(
+            user.token, session_id=session_id
         )

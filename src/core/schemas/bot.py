@@ -11,5 +11,6 @@ class Bot(BaseModel):
     botname: str
     title: str
     description: str
-    last_online: float = 0
+    online_status: bool = 0
+    # last_online: float = 0
     chats: Dict[str, Chat] = Field(default_factory=dict)

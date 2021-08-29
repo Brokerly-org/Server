@@ -17,7 +17,7 @@ class BotModel:
     ) -> str:
         db: DB = DB.get_instance()
         token = token_urlsafe(15)
-        await db.create_bot(token, botname, title, description, user_token, last_online=0)
+        await db.create_bot(token, botname, title, description, user_token, online_status=False)
         return token
 
     @classmethod
@@ -40,10 +40,15 @@ class BotModel:
         ]
         return messages
 
+    # @classmethod
+    # async def update_last_online(cls, botname: str, new_time):
+    #     db: DB = DB.get_instance()
+    #     await db.update_bot_last_online(botname, new_time)
+
     @classmethod
-    async def update_last_online(cls, botname: str, new_time):
+    async def update_online_status(cls, botname: str, is_online: bool):
         db: DB = DB.get_instance()
-        await db.update_bot_last_online(botname, new_time)
+        await db.update_bot_online_status(botname, is_online)
 
     @classmethod
     async def load_by_botname(cls, botname: str) -> Union[Bot, None]:
@@ -57,7 +62,7 @@ class BotModel:
             title=bot_data[2],
             description=bot_data[3],
             owner_token=bot_data[4],
-            last_online=bot_data[5],
+            online_status=bot_data[5],
         )
         return bot
 
@@ -73,7 +78,7 @@ class BotModel:
             title=bot_data[2],
             description=bot_data[3],
             owner_token=bot_data[4],
-            last_online=bot_data[5],
+            online_status=bot_data[5],
         )
         return bot
 
@@ -85,6 +90,6 @@ class BotModel:
             title=raw_bot[2],
             description=raw_bot[3],
             owner_token=raw_bot[4],
-            last_online=raw_bot[5],
+            online_status=raw_bot[5],
         )
         return bot
