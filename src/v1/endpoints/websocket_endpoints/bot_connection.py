@@ -31,7 +31,7 @@ async def connect_bot_ws(ws: WebSocket, bot: Bot = Depends(validate_bot_token)):
     try:
         while True:
             data = await ws.receive_json()
-            message = InputMessage.parse_raw(data["message"])
+            message = InputMessage(**data["message"])
             chat_id = data["chat_id"]
             await data_api.bot_push(bot, chat_id, message)
     except WebSocketDisconnect:
