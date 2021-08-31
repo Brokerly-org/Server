@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 
 from core.settings import Settings
 from core.models.database import DB
@@ -20,6 +21,17 @@ app.include_router(user_router)
 app.include_router(admin_router)
 app.include_router(ws_router)
 app.include_router(dashboard_router)
+
+
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.on_event("startup")
