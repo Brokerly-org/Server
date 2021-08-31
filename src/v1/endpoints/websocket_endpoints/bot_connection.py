@@ -10,6 +10,7 @@ from fastapi import (
 
 from core.models.connections_manager import ConnectionManager
 from core.schemas.bot import Bot
+from core.schemas.message import InputMessage
 from core.models.message_api import MessageApi
 
 from ...validators import validate_bot_token
@@ -30,7 +31,7 @@ async def connect_bot_ws(ws: WebSocket, bot: Bot = Depends(validate_bot_token)):
     try:
         while True:
             data = await ws.receive_json()
-            message = data["message"]
+            message = InputMessage.parse_raw(data["message"])
             chat_id = data["chat_id"]
             await data_api.bot_push(bot, chat_id, message)
     except WebSocketDisconnect:
