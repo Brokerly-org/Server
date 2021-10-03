@@ -33,7 +33,7 @@ async def connect_user_ws(ws: WebSocket, user: User = Depends(validate_user_toke
             message = data["message"]
             botname = data["botname"]
             await data_api.user_push(user, botname, message)
-    except WebSocketDisconnect:
+    except (WebSocketDisconnect, KeyError):
         await connection_manager.unregister_user_connection(
             user.token, session_id=session_id
         )

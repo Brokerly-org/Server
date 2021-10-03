@@ -34,6 +34,6 @@ async def connect_bot_ws(ws: WebSocket, bot: Bot = Depends(validate_bot_token)):
             message = InputMessage(**data["message"])
             chat_id = data["chat_id"]
             await data_api.bot_push(bot, chat_id, message)
-    except WebSocketDisconnect:
+    except (WebSocketDisconnect, KeyError):
         await connection_manager.unregister_bot_connection(bot.botname, session_id=session_id)
 

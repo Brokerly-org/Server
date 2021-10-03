@@ -22,13 +22,14 @@ class MessageApi:
     def __init__(self):
         self.db: DB = DB.get_instance()
         self.listeners = defaultdict(dict)
+        self.callback_data = {}
 
         self.__class__._instance = self
 
-    async def _notify_listeners(self, token: str):
+    async def _notify_listeners(self, token: str, data: dict = None):
         callbacks = self.listeners[token].values()
         for callback in callbacks:
-            await callback()
+            await callback(data)
 
     async def bot_push(self, bot: Bot, chat_id: str, message: InputMessage):
         chat = await ChatModel.load_by_id(chat_id)
@@ -46,6 +47,22 @@ class MessageApi:
         message = InputMessage(text=message)
         await MessageModel.create(chat.id, chat.size, "user", message)
         await self._notify_listeners(botname)
+
+    async def user_push_callback(self, user: User, botname: str, data: dict):
+        chat = await ChatModel.load_by_botname_and_user_token(botname, user.token)
+        if chat is None:
+            raise KeyError  # TODO: replace with costume exception
+        data = {"chat_id": chat.id, "data": data}
+        await self._notify_listeners(botname, data)
+
+    async def bot_push_callback(self, bot: Bot, chat_id: str, data: dict):
+        chat = await ChatModel.load_by_id(chat_id)
+        if chat is None:
+            raise KeyError
+        if chat.botname != bot.botname:
+            raise KeyError
+        data = {"chat_id": chat.id, "data": data}
+        await self._notify_listeners(chat.user_token, data)
 
     def listen_on(self, token: str, callback: Callable, session_id: UUID):
         self.listeners[token][session_id] = callback

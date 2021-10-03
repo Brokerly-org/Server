@@ -23,27 +23,31 @@ class ConnectionManager:
 
         self.__class__._instance = self
 
-    async def user_callback(self, user_token: str):
+    async def user_callback(self, user_token: str, data: dict = None):
         ws: WebSocket = self.connections.get(user_token)
         if ws is None:
             return
         user_messages = await UserModel.get_unread_messages(user_token)
         await ws.send_json(user_messages)
+        if data:
+            await ws.send_json(data)
 
-    async def bot_callback(self, botname: str):
+    async def bot_callback(self, botname: str, data: dict = None):
         ws: WebSocket = self.connections.get(botname)
         if ws is None:
             return
         bot = await BotModel.load_by_botname(botname)
         bot_messages = await BotModel.get_unread_messages(bot.botname)
         await ws.send_json(bot_messages)
+        if data:
+            await ws.send_json(data)
 
     async def _register_listener(self, identifier: str, session_id: UUID, is_bot: bool):
         if is_bot:
-            self.data_api.listen_on(identifier, lambda: self.bot_callback(identifier), session_id)
+            self.data_api.listen_on(identifier, lambda data: self.bot_callback(identifier, data), session_id)
             await self.bot_callback(identifier)
         else:
-            self.data_api.listen_on(identifier, lambda: self.user_callback(identifier), session_id)
+            self.data_api.listen_on(identifier, lambda data: self.user_callback(identifier, data), session_id)
             await self.user_callback(identifier)
 
     async def register_user_connection(self, ws: WebSocket, user_token: str, session_id: UUID):
