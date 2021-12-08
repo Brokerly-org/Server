@@ -1,9 +1,12 @@
 from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
 
-from core.settings import Settings
+from core.settings import get_settings
 
-settings = Settings()
+__all__ = ["dashboard_router"]
+
+
+settings = get_settings()
 dashboard_router = APIRouter()
 
 templates = Jinja2Templates(directory=str(settings.dashboard_templates_path))

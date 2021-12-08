@@ -1,16 +1,15 @@
-from typing import Dict
+from typing import Optional
+from uuid import uuid4
 
-from pydantic import BaseModel, Field
-
-from .chat import Chat
+from sqlmodel import Field, SQLModel
 
 
-class Bot(BaseModel):
-    token: str
-    owner_token: str
+class Bot(SQLModel, table=True):
+    token: str = Field(primary_key=True, default_factory=lambda: str(uuid4()))
     botname: str
     title: str
     description: str
-    online_status: bool = 0
-    # last_online: float = 0
-    chats: Dict[str, Chat] = Field(default_factory=dict)
+    owner_token: str = Field(default=None, foreign_key="user.token")
+    online_status: Optional[bool] = False
+    # chats: Dict[str, Chat] = Field(default_factory=dict)
+

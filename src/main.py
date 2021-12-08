@@ -1,15 +1,11 @@
 from uvicorn import run
 
-from core.settings import Settings
-
-
-settings = Settings()
-
-DEBUG = True if not settings.is_production else False
+from core.settings import get_settings
 
 
 def main():
-    run("api:app", host="0.0.0.0", port=9981, debug=DEBUG)
+    settings = get_settings()
+    run("server:app", host=settings.host, port=settings.port, debug=(not settings.is_production))
 
 
 if __name__ == "__main__":

@@ -1,14 +1,10 @@
-from typing import Dict
+from uuid import uuid4
 
-from pydantic import BaseModel, Field
-
-from .chat import Chat
+from sqlmodel import SQLModel, Field
 
 
-class User(BaseModel):
-    token: str
+class User(SQLModel, table=True):
+    token: str = Field(primary_key=True, default_factory=lambda: str(uuid4()))
     name: str
     email: str
     password_hash: str
-    chats: Dict[str, Chat] = Field(default_factory=dict)
-    bot_tokens: list = Field(default_factory=list)
