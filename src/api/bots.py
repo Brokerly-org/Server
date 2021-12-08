@@ -6,6 +6,7 @@ from core.models.database import get_db_engine
 from core.schemas.bot import Bot
 from core.schemas.message import Message
 from core.schemas.chat import Chat
+from events import dispatch
 
 
 def get_bot_by_token(token: str) -> Bot:
@@ -44,7 +45,7 @@ def get_unread_messages(bot: Bot):
         return chats
 
 
-def send_message(bot: Bot, message: str, chat_id: str) -> bool:
+async def send_message(bot: Bot, message: str, chat_id: str) -> bool:
     with Session(get_db_engine()) as session:
         get_chat_query = select(Chat).where(Chat.id == chat_id)
         chat = session.exec(get_chat_query).one_or_none()
@@ -58,4 +59,16 @@ def send_message(bot: Bot, message: str, chat_id: str) -> bool:
         session.add(chat)  # Update chat size
 
         session.commit()
+    await dispatch(chat.user_token)
     return True
+
+
+def update_bot_online_status(botname: str, change_to: bool):
+    with Session(get_db_engine()) as db_session:
+        get_bot_query = select(Bot).where(Bot.botname == botname)
+        bot = db_session.exec(get_bot_query).one_or_none()
+        if bot is None:
+            return
+        bot.online_status = change_to
+        db_session.add(bot)
+        db_session.commit()

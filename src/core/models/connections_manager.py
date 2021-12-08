@@ -1,23 +1,10 @@
 from functools import lru_cache
-from uuid import UUID
 
 from fastapi import WebSocket
-from sqlmodel import Session, select
 
 from events import listen_on, StopListening
-from core.models.database import get_db_engine
-from core.schemas.bot import Bot
-
-
-def update_bot_online_status(botname: str, change_to: bool):
-    with Session(get_db_engine()) as db_session:
-        get_bot_query = select(Bot).where(Bot.botname == botname)
-        bot = db_session.exec(get_bot_query).one_or_none()
-        if bot is None:
-            return
-        bot.online_status = change_to
-        db_session.add(bot)
-        db_session.commit()
+from api.users import get_unread_messages as get_user_unread_messages, get_user_by_token
+from api.bots import get_unread_messages as get_bot_unread_messages, get_bot_by_botname, update_bot_online_status
 
 
 class ConnectionManager:
@@ -26,19 +13,21 @@ class ConnectionManager:
 
     def listen_on_user_token(self, user_token: str, session_id: str):
         @listen_on(user_token)
-        async def handler_user_message(message: dict):
+        async def handler_user_message():
             ws = self.sessions.get(session_id, None)
             if ws is None:
                 raise StopListening
-            await ws.send_json(message)
+            messages = get_user_unread_messages(get_user_by_token(user_token))
+            await ws.send_json(messages)
 
     def listen_on_bot_botname(self, botname: str, session_id: str):
         @listen_on(botname)
-        async def handler_user_message(message: dict):
+        async def handler_user_message():
             ws = self.sessions.get(session_id, None)
             if ws is None:
                 raise StopListening
-            await ws.send_json(message)
+            messages = get_bot_unread_messages(get_bot_by_botname(botname))
+            await ws.send_json(messages)
 
     def register_user_connection(self, ws: WebSocket, user_token: str, session_id: str):
         self.sessions[session_id] = ws

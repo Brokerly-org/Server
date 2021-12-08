@@ -2,6 +2,7 @@ from collections import defaultdict
 
 from sqlmodel import Session, select
 
+from events import dispatch
 from core.models.database import get_db_engine
 from core.schemas.user import User
 from core.schemas.chat import Chat
@@ -18,7 +19,7 @@ def get_user_by_token(token: str):
         return user
 
 
-def send_message(user: User, message: str, botname: str) -> bool:
+async def send_message(user: User, message: str, botname: str) -> bool:
     with Session(get_db_engine()) as session:
         get_chat_query = select(Chat).where(Chat.botname == botname and Chat.user_token == user.token)
         chat = session.exec(get_chat_query).first()
@@ -37,6 +38,7 @@ def send_message(user: User, message: str, botname: str) -> bool:
         session.add(chat)
 
         session.commit()
+    await dispatch(bot.botname)
     return True
 
 
