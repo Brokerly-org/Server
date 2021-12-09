@@ -59,7 +59,7 @@ async def send_message(bot: Bot, message: str, chat_id: str) -> bool:
         session.add(chat)  # Update chat size
 
         session.commit()
-    await dispatch(chat.user_token)
+        await dispatch(chat.user_token)
     return True
 
 

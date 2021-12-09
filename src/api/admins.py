@@ -10,6 +10,11 @@ from core.schemas.user import User
 def create_user(name: str, email: str, password: str) -> str:
     password_hash = sha256(password.encode()).hexdigest()
     with Session(get_db_engine()) as session:
+        get_user_by_mail = select(User).where(User.email == email)
+        user = session.exec(get_user_by_mail).first()
+        if user is not None:
+            raise ValueError("Email is all ready in use.")
+
         new_user = User(name=name, email=email, password_hash=password_hash)
         session.add(new_user)
         session.commit()
@@ -19,7 +24,9 @@ def create_user(name: str, email: str, password: str) -> str:
 def get_user_by_email_and_password(email: str, password: str):
     password_hash = sha256(password.encode()).hexdigest()
     with Session(get_db_engine()) as session:
-        get_user_query = select(User).where(User.email == email and User.password_hash == password_hash)
+        get_user_query = select(User)\
+            .where(User.email == email)\
+            .where(User.password_hash == password_hash)
         user = session.exec(get_user_query).one_or_none()
         if user is None:
             raise ValueError("Invalid email or password")

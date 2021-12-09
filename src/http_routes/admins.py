@@ -16,7 +16,10 @@ admin_router = APIRouter(tags=["admin"])
 
 @admin_router.post("/auth/register")
 def register(email: str, password: str, name: str):
-    user_token = create_user(name, email, password)
+    try:
+        user_token = create_user(name, email, password)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email is all ready in use.")
     return {"token": user_token}
 
 

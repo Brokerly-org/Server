@@ -33,7 +33,7 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup():
-    SQLModel.metadata.create_all(get_db_engine())
+    get_db_engine()  # initialize
 
 
 @app.on_event("shutdown")
