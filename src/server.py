@@ -7,13 +7,14 @@ from core.settings import get_settings
 from core.models.database import get_db_engine
 
 from http_routes import user_router, bot_router, admin_router, dashboard_router
-
+from ws import ws_router
 
 settings = get_settings()
 app = FastAPI(title="Brokerly")
 app.mount("/static", StaticFiles(directory=str(settings.dashboard_static_path)), name="static")
 
 
+app.include_router(ws_router)
 app.include_router(bot_router)
 app.include_router(user_router)
 app.include_router(admin_router)

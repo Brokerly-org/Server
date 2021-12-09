@@ -23,14 +23,14 @@ async def connect_bot_ws(ws: WebSocket, bot: Bot = Depends(get_bot_by_token)):
     session_id = str(uuid4())
 
     await ws.accept()
-    await connection_manager.register_bot_connection(ws, bot.botname, session_id)
+    connection_manager.register_bot_connection(ws, bot.botname, session_id)
 
     try:
         while True:
             data = await ws.receive_json()
             message = InputMessage(**data["message"])
             chat_id = data["chat_id"]
-            send_message(bot, message.text, chat_id)
+            await send_message(bot, message.text, chat_id)
     except (WebSocketDisconnect, KeyError):
         connection_manager.unregister_bot_connection(bot.botname, session_id=session_id)
 

@@ -7,7 +7,7 @@ __all__ = ["listen_on", "dispatch", "StopListening"]
 
 
 def listen_on(topic: str):
-    async def decorator(func):
+    def decorator(func):
         get_events_manager().listen_on(topic, func)
         return func
     return decorator

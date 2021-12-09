@@ -16,7 +16,7 @@ user_router = APIRouter(prefix="/user", tags=["user"])
 @user_router.post("/push")
 async def push_message_to_bot(message: str, botname: str, user=Depends(get_user_by_token)):
     try:
-        reslut: bool = send_message(user, message, botname)
+        reslut: bool = await send_message(user, message, botname)
     except ValueError as VE:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="botname not found"

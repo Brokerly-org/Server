@@ -30,5 +30,5 @@ def pull_messages_as_bot(bot: Bot = Depends(get_bot_by_token)):
 
 @bot_router.post("/push")
 async def push_message_as_bot(chat_id: str, message: InputMessage, bot: Bot = Depends(get_bot_by_token)):
-    sent: bool = send_message(bot, message.text, chat_id)
+    sent: bool = await send_message(bot, message.text, chat_id)
     return {"sent": sent}

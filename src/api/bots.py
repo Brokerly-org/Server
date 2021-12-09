@@ -46,12 +46,13 @@ def get_unread_messages(bot: Bot):
 
 
 async def send_message(bot: Bot, message: str, chat_id: str) -> bool:
+    user_token = None
     with Session(get_db_engine()) as session:
         get_chat_query = select(Chat).where(Chat.id == chat_id)
         chat = session.exec(get_chat_query).one_or_none()
         if chat is None or chat.botname != bot.botname:
             raise ValueError("Chat Id not found")
-
+        user_token = chat.user_token
         new_message = Message(chat_id=chat.id, index=chat.size, sender="bot", read_status=False, content=message)
         session.add(new_message)
 
@@ -59,7 +60,7 @@ async def send_message(bot: Bot, message: str, chat_id: str) -> bool:
         session.add(chat)  # Update chat size
 
         session.commit()
-        await dispatch(chat.user_token)
+    await dispatch(user_token)
     return True
 
 

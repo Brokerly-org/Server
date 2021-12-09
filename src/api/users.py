@@ -38,7 +38,7 @@ async def send_message(user: User, message: str, botname: str) -> bool:
         session.add(chat)
 
         session.commit()
-        await dispatch(bot.botname)
+    await dispatch(botname)
     return True
 
 
